@@ -1,0 +1,108 @@
+// Copyright (c) 2002-2014 JavaMOP Team. All Rights Reserved.
+package mop;
+
+import app.Bank;
+import java.io.*;
+import java.util.*;
+
+// This property specifies that a program does
+// not call the hasnext method  before the next
+// method of an iterator. 
+// This property is borrowed from tracematches 
+// (see ECOOP'07 http://abc.comlab.ox.ac.uk/papers)
+
+BankBinding(Bank b) {
+    int approved;
+    int withdrawAmount;
+    
+	event close before(Bank b) : 
+              call(* Bank.close(int)) && target(b) { approved = 0; withdrawAmount = 0;}
+
+    event open before(Bank b) : 
+              call(* Bank.open(int)) && target(b) {}
+              
+    event isApproved after(Bank b): 
+              call(* Bank.isApproved(int, int)) && target(b) { if(!b.m_accounts.isEmpty()) { approved = b.m_accounts.firstElement().m_authorizedFor; } }
+ 
+    event withdraw before(int x, int y, Bank b): 
+              call(* Bank.withdraw(int, int)) && target(b) && args(x,y) { withdrawAmount = y;}
+ 
+   fsm :
+     start [
+        open -> accountOpened
+        isApproved -> approvedError
+        withdraw -> withdrawError
+     ]
+     accountOpened [
+        close -> start
+        open -> openAccountError
+        isApproved -> accountOpened
+        withdraw -> tryToWithdraw
+     ]
+     openAccountError [ // == accountOpened
+        close -> start
+        open -> openAccountError
+        isApproved -> accountOpened
+        withdraw -> tryToWithdraw
+     ]
+     approvedError[ // == start
+        open -> accountOpened
+        isApproved -> approvedError
+        withdraw -> withdrawError
+     ]
+     withdrawError[ // == start
+        open -> accountOpened
+        isApproved -> approvedError
+        withdraw -> withdrawError
+     ]
+     tryToWithdraw[ // == accountOpened
+        close -> start
+        open -> openAccountError
+        isApproved -> accountOpened
+        withdraw -> tryToWithdraw     
+     ]
+
+     alias approved = approvedError
+     alias open_fail = openAccountError
+     alias open_success = accountOpened
+     alias draw = withdrawError
+     alias money = tryToWithdraw
+	
+   @open_fail {
+      System.out.println("JAVAMOP : A bank account is already opened!");
+   }
+   
+   @approved{
+       System.out.println("JAVAMOP : Tried to approve amount but no account is opened !");
+   }
+   
+   @open_success{
+        System.out.println("JAVAMOP : Account opened and has approval = " + this.approved);
+   }
+   
+   @draw{
+       System.out.println("JAVAMOP : withdraw :" + this.approved);
+   }
+   
+   @money{
+       if(this.approved >= withdrawAmount || this.withdrawAmount < 1000)
+       {
+           System.out.println("JAVAMOP : withdraw authorized for " + this.withdrawAmount);
+       }
+       else
+       {
+           System.out.println("JAVAMOP : withdraw denied for " + this.withdrawAmount);
+       }
+       this.approved = 0;
+       this.withdrawAmount = 0;
+   }
+}
+
+
+
+
+
+
+
+
+
