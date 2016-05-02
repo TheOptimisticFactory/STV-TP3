@@ -3,6 +3,7 @@
  Cours: 8INF958
  Auteur: Klaus Havelund
 ****************/
+import app.Bank;
 public class SimpleDemo
 {
     public static void main(String[] args)

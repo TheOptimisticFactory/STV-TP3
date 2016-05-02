@@ -4,6 +4,7 @@
  Auteur: Sylvain Hallé
 ****************/
 import java.io.*;
+import app.Bank;
 
 public class Teller
 {

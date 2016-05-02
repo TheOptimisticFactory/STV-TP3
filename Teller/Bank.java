@@ -3,11 +3,13 @@
  Cours: 8INF958
  Auteur: Sylvain Hallé
 ****************/
+package app;
 import java.util.*;
 
 public class Bank
 {
-    Vector<AccountInfo> m_accounts = new Vector<AccountInfo>();
+
+    public Vector<AccountInfo> m_accounts = new Vector<AccountInfo>();
     
     public void open(int accountNo)
     {
@@ -85,8 +87,10 @@ public class Bank
 	    }
 	    else
 	    {
-		// Randomly approves or disapproves
-		return Math.random() > 0.5;
+            boolean r = Math.random() > 0.5;
+            ai.m_authorizedFor = r ? amount : 0;
+            // Randomly approves or disapproves
+            return r;
 	    }
 	}
 	// This should not happen: account not open
